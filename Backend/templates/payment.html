@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment</title>
+    <!-- Include Razorpay Checkout script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body onload="start()">
+    
+    <h2>You payment is processing do not press back or refresh!</h2>
+
+    <script>
+        // Initialize Razorpay Checkout
+        var options = {
+            "key": "{{ pdata.key }}",  // Your Razorpay API key
+            "amount": "{{ pdata.amount }}",  // Amount to pay
+            "currency": "{{ pdata.currency }}",  // Currency
+            "name": "Kings of Cloud",  // Your business name
+            "description": "Reservation Payment",  // Payment description
+            "order_id": "{{ pdata.order_id }}",  // Order ID
+            // Add other necessary options for Razorpay
+            "handler": function(response) {
+                // Handle success callback
+                console.log(response);
+                // After successful payment, call function to send payment details to server
+                sendPaymentDetails();
+            }
+        };
+
+        // Initialize Razorpay Checkout with options
+        var rzp = new Razorpay(options);
+        function start(){
+            rzp.open();
+        }
+       
+
+      
+
+        // Function to send payment details to the server
+        function sendPaymentDetails() {
+            var paymentData = {
+                order_id: "{{ pdata.order_id }}",
+                name: "{{ pdata.name }}",
+                email: "{{ pdata.email }}",
+                phone: "{{ pdata.phone }}",
+                person: "{{ pdata.person }}",
+                amount: "{{ pdata.amount }}",
+                reservation_date: "{{ pdata.reservation_date }}",
+                reservation_time: "{{ pdata.reservation_time }}"
+            };
+
+            fetch('http://localhost:5000/payment_success', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Payment done successfully!");
+                    window.location.href = "https://www.kingofclouds.in/index.html";
+                    // Redirect or perform other actions after successful payment
+                } else {
+                    alert("Payment failed");
+                    window.location.href = "https://www.kingofclouds.in/booking.html";
+                    throw new Error('Failed to send payment details.');
+                }
+            })
+            .catch(error => {
+                console.error('Error sending payment details:', error.message);
+                // Handle error accordingly
+            });
+        }
+    </script>
+</body>
+</html>
